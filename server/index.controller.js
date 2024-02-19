@@ -8,7 +8,11 @@ function getTopics (req, res, next) {
   .catch((err) => {
     next(err)
   })
-
 }
 
-module.exports = {getTopics}
+function getEndpoints (req, res, next) {
+  const endpoints = require('../endpoints.json')
+  res.status(200).send({endpoints})
+}
+
+module.exports = {getTopics, getEndpoints}

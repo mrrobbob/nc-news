@@ -37,3 +37,19 @@ describe('GET /api/topics', () => {
     })
   })
 })
+
+describe('GET /api', () => {
+  it('should return all available endpoints', () => {
+    return request(app)
+    .get('/api')
+    .then((res) => {
+      expect(() => JSON.parse(res.text)).not.toThrow(new Error)
+      const endpoints = JSON.parse(res.text).endpoints
+      Object.keys(endpoints).forEach((key) => {
+        expect(endpoints[key]).toMatchObject({
+          description: expect.any(String)
+        })
+      })
+    })
+  })
+})
