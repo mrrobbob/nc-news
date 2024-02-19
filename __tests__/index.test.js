@@ -409,7 +409,7 @@ describe('DELETE /api/comments/:comment_id', () => {
   })
 })
 
-describe.only('GET /api/users', () => {
+describe('GET /api/users', () => {
   it('should return an array of all users', () => {
     const actualUsers = require('../db/data/test-data/users.js')
     return request(app)
