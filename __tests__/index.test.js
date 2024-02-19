@@ -168,7 +168,7 @@ describe('GET /api/articles/:article_id/comments', () => {
       .get('/api/articles/14/comments')
       .expect(404)
       .then((err) => {
-        expect(err.body.msg).toBe('article doesnt exist')
+        expect(err.body.msg).toBe('article not found')
       })
   })
   it('should return an error if article_id is invalid', () => {
@@ -233,9 +233,9 @@ describe('POST /api/articles/:article_id/comments', () => {
     return request(app)
     .post('/api/articles/3/comments')
     .send({newComment})
-    .expect(400)
+    .expect(404)
     .then((err) => {
-      expect(err.body.msg).toBe('user doesnt exist')
+      expect(err.body.msg).toBe('user not found')
     })
   })
   it('should return an error if the article doesnt exist', () => {
@@ -259,6 +259,79 @@ describe('POST /api/articles/:article_id/comments', () => {
     return request(app)
       .post('/api/articles/doughnut/comments')
       .send({newComment})
+      .expect(400)
+      .then((err) => {
+        expect(err.body.msg).toBe('bad request')
+      })
+  })
+  it('should return an error if new comment lacks params', () => {
+    const newComment = {
+      username: 'butter_bridge',
+    }
+    return request(app)
+      .post('/api/articles/1/comments')
+      .send({newComment})
+      .expect(400)
+      .then((err) => {
+        expect(err.body.msg).toBe('bad request')
+      })
+  })
+})
+
+describe('PATCH /api/articles/:article_id', () => {
+  it('should update an article by increasing/decreasing number of votes. should return the amended article', () => {
+    const modifier = {
+      inc_votes: 50
+    }
+    const article1 = require('../db/data/test-data/articles.js')[0]
+    // (this existence is indeed challenging)
+    return request(app)
+      .patch('/api/articles/1')
+      .send({modifier})
+      .expect(200)
+      .then((res) => {
+        expect(res.body.article).toMatchObject({
+          article_id: 1,
+          title: article1.title,
+          topic: article1.topic,
+          author: article1.author,
+          body: article1.body,
+          created_at: expect.any(String),
+          votes: article1.votes + modifier.inc_votes
+        })
+      })
+  })
+  it('should return error if article_id doesnt exist', () => {
+    const modifier = {
+      inc_votes: 50
+    }
+    return request(app)
+      .patch('/api/articles/14')
+      .send({modifier})
+      .expect(404)
+      .then((err) => {
+        expect(err.body.msg).toBe('article not found')
+      })
+  })
+  it('should return error if article_id is invalid', () => {
+    const modifier = {
+      inc_votes: 50
+    }
+    return request(app)
+      .patch('/api/articles/cheese')
+      .send({modifier})
+      .expect(400)
+      .then((err) => {
+        expect(err.body.msg).toBe('bad request')
+      })
+  })
+  it('should return error if modifier lacks params', () => {
+    const modifier = {
+      laugh: -50
+    }
+    return request(app)
+      .patch('/api/articles/1')
+      .send({modifier})
       .expect(400)
       .then((err) => {
         expect(err.body.msg).toBe('bad request')

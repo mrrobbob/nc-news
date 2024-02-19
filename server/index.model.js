@@ -28,27 +28,27 @@ function selectArticles() {
   ORDER BY created_at DESC
   `
   return db.query(strQuery)
-  .then(async (articles) => {
-    const noBody = articles.rows
-    const counts = await db.query(`
+    .then(async (articles) => {
+      const noBody = articles.rows
+      const counts = await db.query(`
     SELECT article_id, COUNT(*) as count
     FROM comments
     GROUP BY article_id
     `)
-    const preppedArticles = noBody.map((article) => {
-      for (const key of counts.rows) {
-        if (article.article_id === key.article_id) {
-          article.comment_count = Number(key.count)
-          return article
+      const preppedArticles = noBody.map((article) => {
+        for (const key of counts.rows) {
+          if (article.article_id === key.article_id) {
+            article.comment_count = Number(key.count)
+            return article
+          }
+          else {
+            article.comment_count = 0
+            return article
+          }
         }
-        else {
-          article.comment_count = 0
-          return article
-        }
-      }
+      })
+      return preppedArticles
     })
-    return preppedArticles
-  })
 }
 
 async function selectArticleComments(articleId) {
@@ -57,54 +57,50 @@ async function selectArticleComments(articleId) {
   WHERE article_id = $1
   ORDER BY created_at DESC
   `
-  const existingArticles = await db.query(`
-    SELECT article_id
-    FROM articles
-    `)
-  const articleIds = existingArticles.rows.map((obj) => {
-    return obj.article_id
-  })
-
   if (!/^-?\d+$/.test(Number(articleId))) {
     return Promise.reject({ status: 400, msg: 'bad request' })
   }
+  
+  const articleTrial = await db.query(`
+  SELECT article_id
+  FROM articles
+  WHERE article_id = $1
+  `, [articleId])
 
-  if (!articleIds.includes(Number(articleId))) {
-    return Promise.reject({ status: 404, msg: 'article doesnt exist' })
+  if (articleTrial.rows.length === 0) {
+    return Promise.reject({ status: 404, msg: 'article not found' })
   }
-
+  
   return db.query(strQuery, [articleId])
 }
 
 async function insertComment(articleId, newComment) {
-  const usernames = await db.query(`
-  SELECT username FROM users
-  `)
-  
-  let validUsernames = usernames.rows
-  validUsernames = validUsernames.map((obj) => {
-    return obj.username
-  })
   const { username, body } = newComment
 
-  if (!validUsernames.includes(username)) {
-    return Promise.reject({ status: 400, msg: 'user doesnt exist' })
+  if (!(username && body)) {
+    return Promise.reject({ status: 400, msg: 'bad request' })
   }
-  
-  const existingArticles = await db.query(`
-    SELECT article_id
-    FROM articles
-  `)
 
-  const articleIds = existingArticles.rows.map((obj) => {
-    return obj.article_id
-  })
+  const userTrial = await db.query(`
+  SELECT * FROM users
+  WHERE username = $1
+  `, [username])
+
+  if (userTrial.rows.length === 0) {
+    return Promise.reject({ status: 404, msg: 'user not found' })
+  }
 
   if (!/^-?\d+$/.test(Number(articleId))) {
     return Promise.reject({ status: 400, msg: 'bad request' })
   }
 
-  if (!articleIds.includes(Number(articleId))) {
+  const articleTrial = await db.query(`
+  SELECT article_id
+  FROM articles
+  WHERE article_id = $1
+  `, [articleId])
+
+  if (articleTrial.rows.length === 0) {
     return Promise.reject({ status: 404, msg: 'article not found' })
   }
 
@@ -116,8 +112,40 @@ async function insertComment(articleId, newComment) {
     ($1, $2, $3)
     RETURNING *
     `
-
   return db.query(strQuery, insertionParams)
 }
 
-module.exports = { selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment }
+async function updateArticle(articleId, changeVotesBy) {
+  if (!changeVotesBy.inc_votes) {
+    return Promise.reject({status: 400, msg: 'bad request'})
+  }
+
+  changeVotesBy = changeVotesBy.inc_votes
+
+  let strQuery = `
+    UPDATE articles
+    SET votes = $1
+    WHERE article_id = $2
+    RETURNING *
+  `
+  const articleTrial = await db.query(`
+  SELECT article_id
+  FROM articles
+  WHERE article_id = $1
+  `, [articleId])
+
+  if (articleTrial.rows.length === 0) {
+    return Promise.reject({ status: 404, msg: 'article not found' })
+  }
+
+  const origVotes = await db.query(`
+  SELECT votes FROM articles
+  WHERE article_id = $1
+  `, [articleId])
+
+  const oldVotes = origVotes.rows[0].votes
+
+  return db.query(strQuery, [oldVotes + changeVotesBy, articleId])
+}
+
+module.exports = { selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment, updateArticle }

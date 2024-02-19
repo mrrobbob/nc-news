@@ -1,4 +1,4 @@
-const {selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment} = require('./index.model.js')
+const {selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment, updateArticle} = require('./index.model.js')
 
 const db = require('../db/connection.js')
 
@@ -61,4 +61,16 @@ function postComment (req, res, next) {
   })
 }
 
-module.exports = {getTopics, getEndpoints, getArticleById, getArticles, getArticleComments, postComment}
+function patchArticleById (req, res, next) {
+  const articleId = req.params.article_id
+  const {modifier} = req.body
+  updateArticle(articleId, modifier)
+  .then((article) => {
+    res.status(200).send({article: article.rows[0]})
+  })
+  .catch((err) => {
+    next(err)
+  })
+}
+
+module.exports = {getTopics, getEndpoints, getArticleById, getArticles, getArticleComments, postComment, patchArticleById}
