@@ -1,4 +1,4 @@
-const {selectTopics, selectArticleById} = require('./index.model.js')
+const {selectTopics, selectArticleById, selectArticles} = require('./index.model.js')
 
 function getTopics (req, res, next) {
   selectTopics()
@@ -22,11 +22,22 @@ function getArticleById (req, res, next) {
     if (article.rows.length === 0) {
       next({status: 404, msg: "not found"})
     }
-    res.status(200).send({article: article.rows})
+    res.status(200).send({article: article.rows[0]})
   })
   .catch((err) => {
     next(err)
   })
 }
 
-module.exports = {getTopics, getEndpoints, getArticleById}
+function getArticles (req, res, next) {
+  selectArticles()
+  .then((articles) => {
+    const noBody = articles.rows.map((article) => {
+      delete article.body
+      return article
+    })
+    res.status(200).send({articles: noBody})
+  })
+}
+
+module.exports = {getTopics, getEndpoints, getArticleById, getArticles}

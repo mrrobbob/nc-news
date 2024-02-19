@@ -13,8 +13,15 @@ function selectArticleById (articleId) {
   SELECT * FROM articles
   WHERE article_id = $1
   `
-  ;
   return db.query(strQuery, [articleId])
 }
 
-module.exports = {selectTopics, selectArticleById}
+function selectArticles () {
+  let strQuery = `
+  SELECT * FROM articles
+  ORDER BY created_at DESC
+  `
+  return db.query(strQuery)
+}
+
+module.exports = {selectTopics, selectArticleById, selectArticles}

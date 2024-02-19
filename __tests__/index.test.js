@@ -5,6 +5,8 @@ const data = require('../db/data/test-data')
 const db = require('../db/connection.js')
 const moment = require('moment')
 
+const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/
+
 beforeEach(() => {
   return seed(data)
 })
@@ -63,14 +65,11 @@ describe('GET /api', () => {
 
 describe('GET /api/articles/:article_id', () => {
   it('should return an article by its ID', () => {
-    const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/
     return request(app)
       .get('/api/articles/2')
       .then((res) => {
         const article = res.body.article
-        expect(article.length).toBe(1)
-
-        expect(article[0]).toMatchObject({
+        expect(article).toMatchObject({
           article_id: 2,
           title: expect.any(String),
           topic: expect.any(String),
@@ -80,13 +79,62 @@ describe('GET /api/articles/:article_id', () => {
           created_at: expect.any(String),
           article_img_url: expect.any(String)
         })
-        expect(moment(article[0].created_at, moment.ISO_8601).isValid()).toBe(true)
-        expect(urlPattern.test(article[0].article_img_url)).toBe(true)
+        expect(moment(article.created_at, moment.ISO_8601).isValid()).toBe(true)
+        expect(urlPattern.test(article.article_img_url)).toBe(true)
       })
   })
   it('should return an error if article doesnt exist', () => {
     return request(app)
       .get('/api/articles/14')
       .expect(404)
+      .then((err) => {
+        expect(err.body.msg).toBe('not found')
+      })
+  })
+  it('should return an error if article_id is invalid', () => {
+    return request(app)
+      .get('/api/articles/pigs')
+      .expect(400)
+      .then((err) => {
+        expect(err.body.msg).toBe('bad request')
+      })
+  })
+})
+
+describe('GET /api/articles', () => {
+  it('should return an array of article objects', () => {
+    return request(app)
+    .get('/api/articles')
+    .expect(200)
+    .then((res) => {
+      const articles = res.body.articles
+      expect(articles.length).toBe(13)
+      articles.forEach((article) => {
+        expect(article).toMatchObject({
+          article_id: expect.any(Number),
+          title: expect.any(String),
+          topic: expect.any(String),
+          author: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+        })
+        expect(article.body).toBe(undefined)
+        expect(moment(article.created_at, moment.ISO_8601).isValid()).toBe(true)
+        expect(urlPattern.test(article.article_img_url)).toBe(true)
+      })
+    })
+  })
+  it('should return an array of article objects in descending order', () => {
+    return request(app)
+    .get('/api/articles')
+    .expect(200)
+    .then((res) => {
+      const articles = res.body.articles
+      const datesInMs = articles.map((article) => {
+        return (new Date(article.created_at)).getTime()
+      })
+      expect(datesInMs).toBeSorted({descending: true})
+    })
   })
 })
