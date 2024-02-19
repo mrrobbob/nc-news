@@ -148,4 +148,22 @@ async function updateArticle(articleId, changeVotesBy) {
   return db.query(strQuery, [oldVotes + changeVotesBy, articleId])
 }
 
-module.exports = { selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment, updateArticle }
+async function removeComment (commentId) {
+  const commentTrial = await db.query(`
+  SELECT comment_id
+  FROM comments
+  WHERE comment_id = $1
+  `, [commentId])
+  
+  if (commentTrial.rows.length === 0) {
+    return Promise.reject({ status: 404, msg: 'comment not found' })
+  }
+
+  let strQuery = `
+  DELETE FROM comments
+  WHERE comment_id = $1
+  `
+  return db.query(strQuery, [commentId])
+}
+
+module.exports = { selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment, updateArticle, removeComment }
