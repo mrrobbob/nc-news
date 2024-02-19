@@ -9,7 +9,7 @@ beforeEach(() => {
 })
 
 afterAll(() => {
-  db.end()
+  return db.end()
 })
 
 describe('General bad requests', () => {
@@ -31,6 +31,22 @@ describe('GET /api/topics', () => {
       topics.forEach((topic) => {
         expect(topic).toMatchObject({
           slug: expect.any(String),
+          description: expect.any(String)
+        })
+      })
+    })
+  })
+})
+
+describe('GET /api', () => {
+  it('should return all available endpoints', () => {
+    return request(app)
+    .get('/api')
+    .then((res) => {
+      expect(() => JSON.parse(res.text)).not.toThrow(new Error)
+      const endpoints = JSON.parse(res.text).endpoints
+      Object.keys(endpoints).forEach((key) => {
+        expect(endpoints[key]).toMatchObject({
           description: expect.any(String)
         })
       })

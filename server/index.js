@@ -1,11 +1,13 @@
 const express = require('express')
 const app = express()
 
-const {getTopics} = require('./index.controller.js')
+const {getTopics, getEndpoints} = require('./index.controller.js')
 
 app.use(express.json())
 
 app.get('/api/topics', getTopics)
+
+app.get('/api', getEndpoints)
 
 app.use((err, req, res, next) => {
   if (err) {
