@@ -9,7 +9,7 @@ beforeEach(() => {
 })
 
 afterAll(() => {
-  db.end()
+  return db.end()
 })
 
 describe('General bad requests', () => {
