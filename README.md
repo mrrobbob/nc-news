@@ -1,3 +1,6 @@
 # Northcoders News API
 
-For instructions, please head over to [L2C NC News](https://l2c.northcoders.com/courses/be/nc-news).
+Anyone wishing to clone and run this project locally must create two environment variables: 
+1. `.env.development` containing a single line `PGDATABASE=nc_news`
+2. `.env.test` containing a single line `PGDATABASE=nc_news_test` .
+
