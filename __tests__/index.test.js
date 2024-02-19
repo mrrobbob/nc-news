@@ -45,11 +45,25 @@ describe('GET /api', () => {
     .then((res) => {
       expect(() => JSON.parse(res.text)).not.toThrow(new Error)
       const endpoints = JSON.parse(res.text).endpoints
+      // exception as this is actually what is requested.
+      delete endpoints['GET /api']
       Object.keys(endpoints).forEach((key) => {
         expect(endpoints[key]).toMatchObject({
-          description: expect.any(String)
+          description: expect.any(String),
+          queries: expect.any(Array),
+          exampleResponse: expect.any(Object)
         })
       })
+    })
+  })
+})
+
+describe('GET /api/articles/:article_id', () => {
+  it('should return an article by its ID', () => {
+    return request(app)
+    .get('/api/articles/2')
+    .then((res) => {
+      const article = res.body.article
     })
   })
 })
