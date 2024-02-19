@@ -1,5 +1,7 @@
 const {selectTopics, selectArticleById, selectArticles} = require('./index.model.js')
 
+const db = require('../db/connection.js')
+
 function getTopics (req, res, next) {
   selectTopics()
   .then((topics) => {
@@ -31,12 +33,30 @@ function getArticleById (req, res, next) {
 
 function getArticles (req, res, next) {
   selectArticles()
-  .then((articles) => {
+  .then(async (articles) => {
     const noBody = articles.rows.map((article) => {
       delete article.body
       return article
     })
-    res.status(200).send({articles: noBody})
+    const counts = await db.query(`
+    SELECT article_id, COUNT(*) as count
+    FROM comments
+    GROUP BY article_id
+    `)
+    const preppedArticles = noBody.map((article) => {
+      const copyArticle = JSON.parse(JSON.stringify(article))
+      for (const key of counts.rows) {
+        if (copyArticle.article_id === key.article_id) {
+          copyArticle.comment_count = Number(key.count)
+          return copyArticle
+        }
+        else {
+          copyArticle.comment_count = 0
+          return copyArticle
+        }
+      }
+    })
+    res.status(200).send({articles: preppedArticles})
   })
 }
 

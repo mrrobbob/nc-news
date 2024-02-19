@@ -118,6 +118,7 @@ describe('GET /api/articles', () => {
           created_at: expect.any(String),
           votes: expect.any(Number),
           article_img_url: expect.any(String),
+          comment_count: expect.any(Number)
         })
         expect(article.body).toBe(undefined)
         expect(moment(article.created_at, moment.ISO_8601).isValid()).toBe(true)
@@ -125,7 +126,7 @@ describe('GET /api/articles', () => {
       })
     })
   })
-  it('should return an array of article objects in descending order', () => {
+  it('should return an array of article objects in descending date order', () => {
     return request(app)
     .get('/api/articles')
     .expect(200)
