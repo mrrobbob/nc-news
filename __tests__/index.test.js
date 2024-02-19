@@ -88,7 +88,7 @@ describe('GET /api/articles/:article_id', () => {
       .get('/api/articles/14')
       .expect(404)
       .then((err) => {
-        expect(err.body.msg).toBe('not found')
+        expect(err.body.msg).toBe('article not found')
       })
   })
   it('should return an error if article_id is invalid', () => {
@@ -108,6 +108,7 @@ describe('GET /api/articles', () => {
     .expect(200)
     .then((res) => {
       const articles = res.body.articles
+      expect(Array.isArray(articles)).toBe(true)
       expect(articles.length).toBe(13)
       articles.forEach((article) => {
         expect(article).toMatchObject({
@@ -134,6 +135,58 @@ describe('GET /api/articles', () => {
       const articles = res.body.articles
       const datesInMs = articles.map((article) => {
         return (new Date(article.created_at)).getTime()
+      })
+      expect(datesInMs).toBeSorted({descending: true})
+    })
+  })
+})
+
+describe('GET /api/articles/:article_id/comments', () => {
+  it('should return all comments on one article in an array', () => {
+    return request(app)
+    .get('/api/articles/1/comments')
+    .expect(200)
+    .then((res) => {
+      const comments = res.body.comments
+      expect(Array.isArray(comments)).toBe(true)
+      expect(comments.length).toBe(11)
+      comments.forEach((article) => {
+        expect(article).toMatchObject({
+          comment_id: expect.any(Number),
+          body: expect.any(String),
+          votes: expect.any(Number),
+          author: expect.any(String),
+          article_id: expect.any(Number),
+          created_at: expect.any(String)
+        })
+        expect(moment(article.created_at, moment.ISO_8601).isValid()).toBe(true)
+      })
+    })
+  })
+  it('should return an error if article doesnt exist', () => {
+    return request(app)
+      .get('/api/articles/14/comments')
+      .expect(404)
+      .then((err) => {
+        expect(err.body.msg).toBe('no comments under this article')
+      })
+  })
+  it('should return an error if article_id is invalid', () => {
+    return request(app)
+      .get('/api/articles/pigs/comments')
+      .expect(400)
+      .then((err) => {
+        expect(err.body.msg).toBe('bad request')
+      })
+  })
+  it('should return an array of comment objects in descending date order', () => {
+    return request(app)
+    .get('/api/articles/1/comments')
+    .expect(200)
+    .then((res) => {
+      const comments = res.body.comments
+      const datesInMs = comments.map((comment) => {
+        return (new Date(comment.created_at)).getTime()
       })
       expect(datesInMs).toBeSorted({descending: true})
     })
