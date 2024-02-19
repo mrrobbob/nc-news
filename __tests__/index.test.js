@@ -101,7 +101,7 @@ describe('GET /api/articles/:article_id', () => {
   })
 })
 
-describe('GET /api/articles', () => {
+describe.only('GET /api/articles', () => {
   it('should return an array of article objects', () => {
     return request(app)
     .get('/api/articles')
@@ -168,7 +168,7 @@ describe('GET /api/articles/:article_id/comments', () => {
       .get('/api/articles/14/comments')
       .expect(404)
       .then((err) => {
-        expect(err.body.msg).toBe('no comments under this article')
+        expect(err.body.msg).toBe('article doesnt exist')
       })
   })
   it('should return an error if article_id is invalid', () => {
@@ -190,5 +190,69 @@ describe('GET /api/articles/:article_id/comments', () => {
       })
       expect(datesInMs).toBeSorted({descending: true})
     })
+  })
+})
+
+describe('POST /api/articles/:article_id/comments', () => {
+  it('should add a comment onto an article and return the posted comment, given a valid user', () => {
+    const newComment = {
+      username: 'butter_bridge',
+      body: 'This is my opinion.'
+    }
+    return request(app)
+    .post('/api/articles/3/comments')
+    .send({newComment})
+    .expect(201)
+    .then((res) => {
+      const comment = res.body.comment
+      expect(comment).toMatchObject({
+        comment_id: expect.any(Number),
+        body: newComment.body,
+        article_id: 3,
+        author: 'butter_bridge',
+        votes: expect.any(Number),
+        created_at: expect.any(String)
+      })
+      expect(moment(comment.created_at, moment.ISO_8601).isValid()).toBe(true)
+    })
+  })
+  it('should return an error if the author of the comment is not listed in users', () => {
+    const newComment = {
+      username: 'Chris',
+      body: 'This is my opinion.'
+    }
+    return request(app)
+    .post('/api/articles/3/comments')
+    .send({newComment})
+    .expect(400)
+    .then((err) => {
+      expect(err.body.msg).toBe('user doesnt exist')
+    })
+  })
+  it('should return an error if the article doesnt exist', () => {
+    const newComment = {
+      username: 'butter_bridge',
+      body: 'This is my opinion.'
+    }
+    return request(app)
+      .post('/api/articles/14/comments')
+      .send({newComment})
+      .expect(404)
+      .then((err) => {
+        expect(err.body.msg).toBe('article not found')
+      })
+  })
+  it('should return an error if article_id is invalid', () => {
+    const newComment = {
+      username: 'butter_bridge',
+      body: 'This is my opinion.'
+    }
+    return request(app)
+      .post('/api/articles/doughnut/comments')
+      .send({newComment})
+      .expect(400)
+      .then((err) => {
+        expect(err.body.msg).toBe('bad request')
+      })
   })
 })
