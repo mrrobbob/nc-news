@@ -156,7 +156,7 @@ describe('GET /api/articles/:article_id/comments', () => {
           body: expect.any(String),
           votes: expect.any(Number),
           author: expect.any(String),
-          article_id: expect.any(Number),
+          article_id: 1,
           created_at: expect.any(String)
         })
         expect(moment(article.created_at, moment.ISO_8601).isValid()).toBe(true)
@@ -189,6 +189,15 @@ describe('GET /api/articles/:article_id/comments', () => {
         return (new Date(comment.created_at)).getTime()
       })
       expect(datesInMs).toBeSorted({descending: true})
+    })
+  })
+  it('should return an empty array if article exists, but no comments under it', () => {
+    return request(app)
+    .get('/api/articles/2/comments')
+    .expect(200)
+    .then((res) => {
+      const comments = res.body.comments
+      expect(comments).toEqual([])
     })
   })
 })
