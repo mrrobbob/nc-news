@@ -22,11 +22,15 @@ function selectArticleById(articleId) {
     })
 }
 
-function selectArticles() {
+function selectArticles(query) {
   let strQuery = `
   SELECT article_id, title, topic, author, created_at, votes, article_img_url FROM articles
-  ORDER BY created_at DESC
   `
+  if (query.topic) {
+    strQuery += `\nWHERE topic = '${query.topic}'`
+  }
+  strQuery += `\nORDER BY created_at DESC`
+
   return db.query(strQuery)
     .then(async (articles) => {
       const noBody = articles.rows
