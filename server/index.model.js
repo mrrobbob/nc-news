@@ -115,16 +115,18 @@ async function insertComment(articleId, newComment) {
   return db.query(strQuery, insertionParams)
 }
 
-async function updateArticle(articleId, changeVotesBy) {
-  if (!changeVotesBy.inc_votes) {
-    return Promise.reject({status: 400, msg: 'bad request'})
+async function updateArticle(articleId, {inc_votes}) {
+  if (!inc_votes) {
+    inc_votes = 0
   }
 
-  changeVotesBy = changeVotesBy.inc_votes
+  if (typeof inc_votes !== 'number') {
+    return Promise.reject({status: 400, msg: 'inc_votes must be a number'})
+  }
 
   let strQuery = `
     UPDATE articles
-    SET votes = $1
+    SET votes = votes + $1
     WHERE article_id = $2
     RETURNING *
   `
@@ -138,14 +140,7 @@ async function updateArticle(articleId, changeVotesBy) {
     return Promise.reject({ status: 404, msg: 'article not found' })
   }
 
-  const origVotes = await db.query(`
-  SELECT votes FROM articles
-  WHERE article_id = $1
-  `, [articleId])
-
-  const oldVotes = origVotes.rows[0].votes
-
-  return db.query(strQuery, [oldVotes + changeVotesBy, articleId])
+  return db.query(strQuery, [inc_votes, articleId])
 }
 
 async function removeComment (commentId) {
@@ -154,7 +149,7 @@ async function removeComment (commentId) {
   FROM comments
   WHERE comment_id = $1
   `, [commentId])
-  
+
   if (commentTrial.rows.length === 0) {
     return Promise.reject({ status: 404, msg: 'comment not found' })
   }
@@ -166,4 +161,11 @@ async function removeComment (commentId) {
   return db.query(strQuery, [commentId])
 }
 
-module.exports = { selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment, updateArticle, removeComment }
+function selectUsers () {
+  let strQuery = `
+  SELECT * FROM users
+  `
+  return db.query(strQuery)
+}
+
+module.exports = { selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment, updateArticle, removeComment, selectUsers }

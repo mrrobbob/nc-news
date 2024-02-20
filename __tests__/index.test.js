@@ -279,9 +279,31 @@ describe('POST /api/articles/:article_id/comments', () => {
 })
 
 describe('PATCH /api/articles/:article_id', () => {
-  it('should update an article by increasing/decreasing number of votes. should return the amended article', () => {
+  it('should update an article by increasing/decreasing number of votes. should return the amended article. given positive change', () => {
     const modifier = {
       inc_votes: 50
+    }
+    const article1 = require('../db/data/test-data/articles.js')[0]
+    // (this existence is indeed challenging)
+    return request(app)
+      .patch('/api/articles/1')
+      .send({modifier})
+      .expect(200)
+      .then((res) => {
+        expect(res.body.article).toMatchObject({
+          article_id: 1,
+          title: article1.title,
+          topic: article1.topic,
+          author: article1.author,
+          body: article1.body,
+          created_at: expect.any(String),
+          votes: article1.votes + modifier.inc_votes
+        })
+      })
+  })
+  it('should update an article by increasing/decreasing number of votes. should return the amended article. given negative change', () => {
+    const modifier = {
+      inc_votes: -50
     }
     const article1 = require('../db/data/test-data/articles.js')[0]
     // (this existence is indeed challenging)
@@ -325,16 +347,37 @@ describe('PATCH /api/articles/:article_id', () => {
         expect(err.body.msg).toBe('bad request')
       })
   })
-  it('should return error if modifier lacks params', () => {
+  it('should return error if given non number inc_votes', () => {
+    const modifier = {
+      inc_votes: "fake number"
+    }
+    return request(app)
+      .patch('/api/articles/cheese')
+      .send({modifier})
+      .expect(400)
+      .then((err) => {
+        expect(err.body.msg).toBe('inc_votes must be a number')
+      })
+  })
+  it('should return original article if modifier lacks params', () => {
+    const article1 = require('../db/data/test-data/articles.js')[0]
     const modifier = {
       laugh: -50
     }
     return request(app)
       .patch('/api/articles/1')
       .send({modifier})
-      .expect(400)
-      .then((err) => {
-        expect(err.body.msg).toBe('bad request')
+      .expect(200)
+      .then((res) => {
+        expect(res.body.article).toMatchObject({
+          article_id: 1,
+          title: article1.title,
+          topic: article1.topic,
+          author: article1.author,
+          body: article1.body,
+          created_at: expect.any(String),
+          votes: article1.votes
+        })
       })
   })
 })
@@ -362,6 +405,26 @@ describe('DELETE /api/comments/:comment_id', () => {
     .expect(400)
     .then((err) => {
       expect(err.body.msg).toBe('bad request')
+    })
+  })
+})
+
+describe('GET /api/users', () => {
+  it('should return an array of all users', () => {
+    const actualUsers = require('../db/data/test-data/users.js')
+    return request(app)
+    .get('/api/users')
+    .expect(200)
+    .then((res) => {
+      const users = res.body.users
+      expect(users.length).toBe(4)
+      users.forEach((user, i) => {
+        expect(user).toMatchObject({
+          username: actualUsers[i].username,
+          name: actualUsers[i].name,
+          avatar_url: actualUsers[i].avatar_url
+        })
+      })
     })
   })
 })
