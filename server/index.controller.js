@@ -1,4 +1,4 @@
-const {selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment, updateArticle} = require('./index.model.js')
+const {selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment, updateArticle, removeComment} = require('./index.model.js')
 
 const db = require('../db/connection.js')
 
@@ -73,4 +73,15 @@ function patchArticleById (req, res, next) {
   })
 }
 
-module.exports = {getTopics, getEndpoints, getArticleById, getArticles, getArticleComments, postComment, patchArticleById}
+function deleteCommentById (req, res, next) {
+  const commentId = req.params.comment_id
+  removeComment(commentId)
+  .then(() => {
+    res.status(204).end()
+  })
+  .catch((err) => {
+    next(err)
+  })
+}
+
+module.exports = {getTopics, getEndpoints, getArticleById, getArticles, getArticleComments, postComment, patchArticleById, deleteCommentById}

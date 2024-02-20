@@ -338,3 +338,30 @@ describe('PATCH /api/articles/:article_id', () => {
       })
   })
 })
+
+describe('DELETE /api/comments/:comment_id', () => {
+  it('should delete a comment given its id', () => {
+    return request(app)
+    .delete('/api/comments/10')
+    .expect(204)
+    .then((res) => {
+      expect(res.body).toEqual({})
+    })
+  })
+  it('should return an error if comment doesnt exist', () => {
+    return request(app)
+    .delete('/api/comments/20')
+    .expect(404)
+    .then((err) => {
+      expect(err.body.msg).toBe('comment not found')
+    })
+  })
+  it('should return an error if comment_id is invalid', () => {
+    return request(app)
+    .delete('/api/comments/bananas')
+    .expect(400)
+    .then((err) => {
+      expect(err.body.msg).toBe('bad request')
+    })
+  })
+})
