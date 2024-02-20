@@ -141,6 +141,30 @@ describe('GET /api/articles', () => {
   })
 })
 
+describe('GET /api/articles (queries)', () => {
+  it('should accept a topic query and returns articles only with this topic', () => {
+    return request(app)
+    .get('/api/articles?topic=cats')
+    .expect(200)
+    .then((res) => {
+      const articles = res.body.articles
+      expect(articles.length).toBe(1)
+      articles.forEach((article) => {
+        expect(article.topic).toBe('cats')
+      })
+    })
+  })
+  it('should return nothing if given a non-existent topic', () => {
+    return request(app)
+    .get('/api/articles?topic=dogs')
+    .expect(200)
+    .then((res) => {
+      const articles = res.body.articles
+      expect(articles.length).toBe(0)
+    })
+  })
+})
+
 describe('GET /api/articles/:article_id/comments', () => {
   it('should return all comments on one article in an array', () => {
     return request(app)
@@ -417,7 +441,7 @@ describe('GET /api/users', () => {
     .expect(200)
     .then((res) => {
       const users = res.body.users
-      expect(users.length).toBe(4)
+      expect(users.length).toBe(actualUsers.length)
       users.forEach((user, i) => {
         expect(user).toMatchObject({
           username: actualUsers[i].username,
