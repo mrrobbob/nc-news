@@ -11,8 +11,8 @@ if (ENV === 'production') {
   config.max = 2
 }
 
-if (!process.env.PGDATABASE && !process.nextTick.DATABASE_URL) {
+if (!process.env.PGDATABASE && !process.env.DATABASE_URL) {
   throw new Error('PGDATABASE or DATABASE_URL not set');
 }
 
-module.exports = new Pool();
+module.exports = new Pool(config);
