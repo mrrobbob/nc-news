@@ -10,28 +10,19 @@ function selectTopics() {
 
 function selectArticleById(articleId) {
   let strQuery = `
-  SELECT * FROM articles
-  WHERE article_id = $1
+  SELECT J.* FROM
+  (SELECT articles.*, COUNT(comments.article_id) as comment_count
+  FROM comments
+  RIGHT JOIN articles ON articles.article_id = comments.article_id GROUP BY articles.article_id) J
+  WHERE J.article_id = $1
   `
   return db.query(strQuery, [articleId])
-    .then(async (article) => {
+    .then((article) => {
       if (article.rows.length === 0) {
         return Promise.reject({ status: 404, msg: "article not found" })
       }
-      article = article.rows[0]
-      const counts = await db.query(`
-      SELECT article_id, COUNT(*) as count
-      FROM comments
-      WHERE article_id = $1
-      GROUP BY article_id
-      `, [articleId])
-      if (counts.rows.length === 0) {
-        article.comment_count = 0
-      }
-      else {
-        article.comment_count = Number(counts.rows[0].count)
-      }
-      return article
+      article.rows[0].comment_count = Number(article.rows[0].comment_count)
+      return article.rows[0]
     })
 }
 
