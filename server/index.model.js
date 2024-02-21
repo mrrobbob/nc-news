@@ -14,19 +14,39 @@ function selectArticleById(articleId) {
   WHERE article_id = $1
   `
   return db.query(strQuery, [articleId])
-    .then((article) => {
+    .then(async (article) => {
       if (article.rows.length === 0) {
         return Promise.reject({ status: 404, msg: "article not found" })
+      }
+      article = article.rows[0]
+      const counts = await db.query(`
+      SELECT article_id, COUNT(*) as count
+      FROM comments
+      WHERE article_id = $1
+      GROUP BY article_id
+      `, [articleId])
+      if (counts.rows.length === 0) {
+        article.comment_count = 0
+      }
+      else {
+        article.comment_count = Number(counts.rows[0].count)
       }
       return article
     })
 }
 
-function selectArticles(query) {
+async function selectArticles(query) {
   let strQuery = `
   SELECT article_id, title, topic, author, created_at, votes, article_img_url FROM articles
   `
   if (query.topic) {
+    const topicTrial = await db.query(`
+    SELECT * FROM topics
+    WHERE slug = '${query.topic}'
+    `)
+    if (topicTrial.rows.length === 0) {
+      return Promise.reject({status: 404, msg: 'topic doesnt exist'})
+    }
     strQuery += `\nWHERE topic = '${query.topic}'`
   }
   strQuery += `\nORDER BY created_at DESC`
@@ -35,10 +55,10 @@ function selectArticles(query) {
     .then(async (articles) => {
       const noBody = articles.rows
       const counts = await db.query(`
-    SELECT article_id, COUNT(*) as count
-    FROM comments
-    GROUP BY article_id
-    `)
+      SELECT article_id, COUNT(*) as count
+      FROM comments
+      GROUP BY article_id
+      `)
       const preppedArticles = noBody.map((article) => {
         for (const key of counts.rows) {
           if (article.article_id === key.article_id) {

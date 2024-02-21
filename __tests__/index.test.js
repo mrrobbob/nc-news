@@ -101,6 +101,29 @@ describe('GET /api/articles/:article_id', () => {
   })
 })
 
+describe('GET /api/articles/:article_id (comment_count)', () => {
+  it('should return an article by its ID with added comment_count', () => {
+    return request(app)
+      .get('/api/articles/1')
+      .then((res) => {
+        const article = res.body.article
+        expect(article).toMatchObject({
+          article_id: 1,
+          title: expect.any(String),
+          topic: expect.any(String),
+          author: expect.any(String),
+          body: expect.any(String),
+          votes: expect.any(Number),
+          comment_count: 11,
+          created_at: expect.any(String),
+          article_img_url: expect.any(String)
+        })
+        expect(moment(article.created_at, moment.ISO_8601).isValid()).toBe(true)
+        expect(urlPattern.test(article.article_img_url)).toBe(true)
+      })
+  })
+})
+
 describe('GET /api/articles', () => {
   it('should return an array of article objects', () => {
     return request(app)
@@ -154,13 +177,21 @@ describe('GET /api/articles (queries)', () => {
       })
     })
   })
-  it('should return nothing if given a non-existent topic', () => {
+  it('should return error if given non-existent topic', () => {
     return request(app)
     .get('/api/articles?topic=dogs')
+    .expect(404)
+    .then((err) => {
+      expect(err.body.msg).toBe('topic doesnt exist')
+    })
+  })
+  it('should return nothing if given a topic with no articles referencing it', () => {
+    return request(app)
+    .get('/api/articles?topic=paper')
     .expect(200)
     .then((res) => {
-      const articles = res.body.articles
-      expect(articles.length).toBe(0)
+      const article = res.body.articles
+      expect(article).toEqual([])
     })
   })
 })
