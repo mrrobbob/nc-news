@@ -122,6 +122,26 @@ describe('GET /api/articles/:article_id (comment_count)', () => {
         expect(urlPattern.test(article.article_img_url)).toBe(true)
       })
   })
+  it('should return an article by its ID with added comment_count as zero if no comments', () => {
+    return request(app)
+      .get('/api/articles/2')
+      .then((res) => {
+        const article = res.body.article
+        expect(article).toMatchObject({
+          article_id: 2,
+          title: expect.any(String),
+          topic: expect.any(String),
+          author: expect.any(String),
+          body: expect.any(String),
+          votes: expect.any(Number),
+          comment_count: 0,
+          created_at: expect.any(String),
+          article_img_url: expect.any(String)
+        })
+        expect(moment(article.created_at, moment.ISO_8601).isValid()).toBe(true)
+        expect(urlPattern.test(article.article_img_url)).toBe(true)
+      })
+  })
 })
 
 describe('GET /api/articles', () => {
