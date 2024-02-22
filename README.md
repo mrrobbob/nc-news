@@ -12,7 +12,7 @@ Anyone wishing to clone and run this project locally must create two environment
 1. `.env.development` containing the single line `PGDATABASE=nc_news`
 2. `.env.test` containing the single line `PGDATABASE=nc_news_test`.
 
-After this, run the following get everything ready:
+After this, run the following to get everything ready:
 
 1. Run `npm install` in the terminal to install dependencies.
 2. Run `npm run setup-dbs` to set up the PostgreSQL databases.
@@ -20,4 +20,4 @@ After this, run the following get everything ready:
 
 Minimum version of Node: 15.0.0
 
-Version of PostgreSQL used: 12.16
+Minimum version of PostgreSQL: 12.16
