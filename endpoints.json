@@ -14,13 +14,31 @@
       ]
     }
   },
+  "POST /api/topics": {
+    "description": "adds a new topic",
+    "queries": [],
+    "exampleRequest": {
+      "newTopic": {
+        "slug": "politics",
+        "description": "global politics"
+      }
+    },
+    "exampleResponse": {
+      "addedTopic": {
+        "slug": "politics",
+        "description": "global politics"
+      }
+    }
+  },
   "GET /api/articles": {
     "description": "serves an array of all articles",
     "queries": [
       "author",
       "topic",
       "sort_by",
-      "order"
+      "order",
+      "limit",
+      "p"
     ],
     "exampleResponse": {
       "articles": [
@@ -55,24 +73,27 @@
   },
   "GET /api/articles/:article_id/comments": {
     "description": "serves an array of all comments for one article",
-    "queries": [],
+    "queries": [
+      "limit",
+      "p"
+    ],
     "exampleResponse": {
-      "article": [
+      "comments": [
         {
-            "comment_id": 11,
-            "body": "Ambidextrous marsupial",
-            "votes": 0,
-            "author": "icellusedkars",
-            "article_id": 3,
-            "created_at": "2020-09-19T23: 10: 00.000Z"
+          "comment_id": 11,
+          "body": "Ambidextrous marsupial",
+          "votes": 0,
+          "author": "icellusedkars",
+          "article_id": 3,
+          "created_at": "2020-09-19T23: 10: 00.000Z"
         },
         {
-            "comment_id": 10,
-            "body": "git push origin master",
-            "votes": 0,
-            "author": "icellusedkars",
-            "article_id": 3,
-            "created_at": "2020-06-20T07: 24: 00.000Z"
+          "comment_id": 10,
+          "body": "git push origin master",
+          "votes": 0,
+          "author": "icellusedkars",
+          "article_id": 3,
+          "created_at": "2020-06-20T07: 24: 00.000Z"
         }
       ]
     }
@@ -81,33 +102,42 @@
     "description": "adds a new comment and serves it back",
     "queries": [],
     "exampleRequest": {
-      "username" : "default dan",
-      "body": "hit the floor"
+      "newComment": {
+        "username": "default dan",
+        "body": "hit the floor"
+      }
+      
     },
     "exampleResponse": {
-      "comment_id": 14,
-      "body": "my opinion",
-      "votes": 0,
-      "author": "butter_bridge",
-      "article_id": 3,
-      "created_at": "2024-02-20T07: 24: 00.000Z"
+      "addedComment": {
+        "comment_id": 14,
+        "body": "my opinion",
+        "votes": 0,
+        "author": "butter_bridge",
+        "article_id": 3,
+        "created_at": "2024-02-20T07: 24: 00.000Z"
+      }
     }
   },
   "PATCH /api/articles/:article_id": {
     "description": "modifies number of votes on an article and serves it back",
     "queries": [],
     "exampleRequest": {
-      "inc_votes": -10
+      "modifier": {
+        "inc_votes": -10
+      }
     },
     "exampleResponse": {
-      "article_id": 1,
-      "title": "Living in the shadow of a great man",
-      "topic": "mitch",
-      "author": "butter_bridge",
-      "body": "I find this existence challenging",
-      "created_at": "2020-07-09T20:11:00.000Z",
-      "votes": 150,
-      "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+      "article": {
+        "article_id": 1,
+        "title": "Living in the shadow of a great man",
+        "topic": "mitch",
+        "author": "butter_bridge",
+        "body": "I find this existence challenging",
+        "created_at": "2020-07-09T20:11:00.000Z",
+        "votes": 150,
+        "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+      }
     }
   },
   "DELETE /api/comments/:comment_id": {
@@ -142,5 +172,67 @@
         }
       ]
     }
+  },
+  "GET /api/users/:username": {
+    "description": "serves a user by username",
+    "queries": [],
+    "exampleResponse": {
+      "user": {
+        "username": "butter_bridge",
+        "name": "jonny",
+        "avatar_url": "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
+      }
+    }
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "updates the votes on a comment given its comment_id",
+    "queries": [],
+    "exampleRequest": {
+      "modifier": {
+        "inc_votes": -10
+      }
+    },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 1,
+        "body": "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+        "article_id": 9,
+        "author": "butter_bridge",
+        "votes": 66,
+        "created_at": "2020-04-06T12:17:00.000Z"
+      }
+    }
+  },
+  "POST /api/articles": {
+    "description": "adds a new article",
+    "queries": [],
+    "exampleRequest": {
+      "newArticle": {
+        "title": "Can I go to Japan",
+        "topic": "cats",
+        "author": "butter_bridge",
+        "body": "I want to go to cat island",
+        "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+      }
+    },
+    "exampleResponse": {
+      "addedArticle": {
+        "title": "Can I go to Japan",
+        "topic": "cats",
+        "author": "butter_bridge",
+        "body": "I want to go to cat island",
+        "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        "article_id": 14,
+        "votes":0,
+        "created_at": "2024-02-22T16:29:27.121Z",
+        "comment_count": 0  
+      }
+      
+    }
+  },
+  "DELETE /api/articles/:article_id": {
+    "description": "removes an article by its ID",
+    "queries": [],
+    "exampleResponse": {}
   }
 }

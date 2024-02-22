@@ -1,4 +1,4 @@
-const {selectTopics, selectArticleById, selectArticles, selectArticleComments, insertComment, updateArticle, removeComment, selectUsers} = require('./index.model.js')
+const {selectTopics, insertTopic, selectArticleById, selectArticles, insertArticle, selectArticleComments, insertComment, updateArticle, updateComment, removeComment, selectUsers, selectUserByUsername, removeArticle} = require('./index.model.js')
 
 function getTopics (req, res, next) {
   selectTopics()
@@ -6,6 +6,18 @@ function getTopics (req, res, next) {
     res.status(200).send({topics: topics.rows})
   })
   .catch((err) => {
+    next(err)
+  })
+}
+
+function postTopic (req, res, next) {
+  const {newTopic} = req.body
+  insertTopic(newTopic)
+  .then((addedTopic) => {
+    res.status(201).send({addedTopic: addedTopic.rows[0]})
+  })
+  .catch((err) => {
+    console.log(err);
     next(err)
   })
 }
@@ -37,9 +49,21 @@ function getArticles (req, res, next) {
   })
 }
 
+function postArticle (req, res, next) {
+  const {newArticle} = req.body
+  insertArticle(newArticle)
+  .then((article) => {
+    res.status(201).send({addedArticle: article.rows[0]})
+  })
+  .catch((err) => {
+    next(err)
+  })
+}
+
 function getArticleComments (req, res, next) {
+  const query = req.query
   const articleId = req.params.article_id
-  selectArticleComments(articleId)
+  selectArticleComments(query, articleId)
   .then((comments) => {
     res.status(200).send({comments: comments.rows})
   })
@@ -72,6 +96,18 @@ function patchArticleById (req, res, next) {
   })
 }
 
+function patchCommentById (req, res, next) {
+  const commentId = req.params.comment_id
+  const {modifier} = req.body
+  updateComment(commentId, modifier)
+  .then((comment) => {
+    res.status(200).send({comment: comment.rows[0]})
+  })
+  .catch((err) => {
+    next(err)
+  })
+}
+
 function deleteCommentById (req, res, next) {
   const commentId = req.params.comment_id
   removeComment(commentId)
@@ -93,4 +129,26 @@ function getUsers (req, res, next) {
   })
 }
 
-module.exports = {getTopics, getEndpoints, getArticleById, getArticles, getArticleComments, postComment, patchArticleById, deleteCommentById, getUsers}
+function getUserByUsername (req, res, next) {
+  const username = req.params.username
+  selectUserByUsername(username)
+  .then((user) => {
+    res.status(200).send({user: user.rows[0]})
+  })
+  .catch((err) => {
+    next(err)
+  })
+}
+
+function deleteArticleById (req, res, next) {
+  const articleId = req.params.article_id
+  removeArticle(articleId)
+  .then(() => {
+    res.status(204).end()
+  })
+  .catch((err) => {
+    next(err)
+  })
+}
+
+module.exports = {getTopics, postTopic, getEndpoints, getArticleById, getArticles, deleteArticleById, postArticle, getArticleComments, postComment, patchArticleById, patchCommentById, deleteCommentById, getUsers, getUserByUsername}

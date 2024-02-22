@@ -1,30 +1,16 @@
 const express = require('express')
+const apiRouter = require('./routes/api-router.js')
 const app = express()
-
-const {getTopics, getEndpoints, getArticleById, getArticles, getArticleComments, postComment, patchArticleById, deleteCommentById, getUsers} = require('./index.controller.js')
 
 app.use(express.json())
 
-app.get('/api/topics', getTopics)
-
-app.get('/api', getEndpoints)
-
-app.get('/api/articles', getArticles)
-
-app.get('/api/articles/:article_id', getArticleById)
-
-app.get('/api/articles/:article_id/comments', getArticleComments)
-
-app.post('/api/articles/:article_id/comments', postComment)
-
-app.patch('/api/articles/:article_id', patchArticleById)
-
-app.delete('/api/comments/:comment_id', deleteCommentById)
-
-app.get('/api/users', getUsers)
+app.use('/api', apiRouter)
 
 app.use((err, req, res, next) => {
   if (err.code === '22P02') {
+    res.status(400).send({msg: 'bad request'})
+  }
+  if (err.code === '23503') { // foreign key violation
     res.status(400).send({msg: 'bad request'})
   }
   res.status(err.status).send({msg: err.msg})
