@@ -4,6 +4,7 @@
   "description": "bc-nc-news",
   "main": "server/listener.js",
   "scripts": {
+    "build": "npm install; npm run build",
     "start": "node server/listener.js",
     "setup-dbs": "psql -f ./db/setup.sql",
     "seed": "node ./db/seeds/run-seed.js",
@@ -26,8 +27,7 @@
     "husky": "^8.0.2",
     "jest": "^27.5.1",
     "jest-extended": "^2.0.0",
-    "jest-sorted": "^1.0.14",
-    "pg-format": "^1.0.4"
+    "jest-sorted": "^1.0.14"
   },
   "dependencies": {
     "dotenv": "^16.0.0",
